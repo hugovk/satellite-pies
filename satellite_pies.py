@@ -14,11 +14,10 @@ import urllib
 # Prerequisites: PIL and OSM Viz
 # Prerequisites: For --repeat, twisted.internet
 
-# Optional: For a more accurate location based on nearby wifi networks, WirelessNetConsole [1] is needed, otherwise maps will be based on your public IP address which is less accurate.
+# Optional prerequisite for WinXP: Windows XP needs WirelessNetConsole [1] to get location based on nearby wifi networks, otherwise it will be based on your public IP address which is less accurate.
 # [1] http://www.nirsoft.net/utils/wireless_net_console.html
 
 # TODO Error handling: no wifi, no internet...
-# TODO Where available (Windows but not XP), get wifi network list with `netsh wlan show networks mode=bssid` instead of WirelessNetConsole
 # TODO Linux
 # TODO Use higher zoom aerial maps than MapQuest Open Aerial
 
@@ -32,12 +31,16 @@ except ImportError, e:
 last_pos_id = [] # Can be a list of wifis or an IP address. Used to check if user is in the same place.
 last_coords = None,None
 
-def get_wifi_geolocation():
+def get_xp_wifi_list():
     """
-    Get the computer's geolocation using the nearest wifi networks. Should be very accurate. Required WirelessNetConsole.exe.
+    Get Windows XP's nearest wifi networks. 
+    Requires WirelessNetConsole.exe.
+    Returns:
+        List: of nearest networks' SSIDs
+        List: of nearest networks' MAC addressses
+        List: of nearest networks' RSSIs
     """
-    print "Get wifi geolocation"
-    global last_pos_id
+    print "Get WinXP wifi networks"
     cmd = 'WirelessNetConsole'
     try:
         p = Popen(cmd, stdout=PIPE, stderr=PIPE)
@@ -48,37 +51,102 @@ def get_wifi_geolocation():
         macs = re.compile('MAC Address                   :  (.*)\r\r').findall(stdout)
         rssis = re.compile('RSSI                          :  (.*)\r\r').findall(stdout)
 
-        number_same = len(set(last_pos_id) & set(macs))
-        if number_same > 1:
-            print number_same, "same wifi networks found. Probably same place, don't update"
-            return None, False
-        else:
-            last_pos_id = macs
+        return ssids, macs, rssis
+    except:
+        return None, None, None
+
+def get_nonxp_wifi_list():
+    """
+    Get non-Windows XP's nearest wifi networks. 
+    Returns:
+        List: of nearest networks' SSIDs
+        List: of nearest networks' MAC addressses
+        List: of nearest networks' RSSIs
+    """
+    print "Get non-WinXP wifi networks"
+    cmd = 'netsh wlan show networks mode=bssid'
+    cmd = 'cat netsh_test_data.txt'
+    try:
+        p = Popen(cmd, stdout=PIPE, stderr=PIPE)
+        stdout, stderr = p.communicate()
+        # for line in stdout.split("\n"):
+            # print line
+        ssids = re.compile('SSID [0-9]* : (.*)\r').findall(stdout)
+        macs = re.compile('BSSID [0-9]*                 : (.*)\r').findall(stdout)
+        rssis = re.compile(' Signal             : (.*)\r').findall(stdout)
         
-        geourl = 'https://maps.googleapis.com/maps/api/browserlocation/json?browser=firefox&sensor=true'
-        for i,ssid in enumerate(ssids):
-            print macs[i], ssid, rssis[i]
-            geourl += '&wifi=mac:%s%%7Cssid:%s%%7Css:%s' % (macs[i], ssid.replace(" ", "%20"), rssis[i])
-        # Look up lat/lon from Google Maps API
+        return ssids, macs, rssis
+    except:
+        return None, None, None
+
+def get_wifi_list():
+    """
+    Get the computer's nearest wifi networks.
+    Returns:
+        Boolean: if position has (probably) changed
+        List: of nearest networks' SSIDs
+        List: of nearest networks' MAC addressses
+        List: of nearest networks' RSSIs
+    """
+    print "Get wifi networks"
+    if platform.release() == "XP":
+        ssids, macs, rssis = get_xp_wifi_list()
+    else:
+        ssids, macs, rssis = get_nonxp_wifi_list()
+    
+    global last_pos_id
+    number_same = len(set(last_pos_id) & set(macs))
+    if number_same > 1:
+        print number_same, "same wifi networks found. Probably same place, don't update"
+        return False, ssids, macs, rssis
+    else:
+        last_pos_id = macs
+        return True, ssids, macs, rssis
+
+    
+def get_wifi_geolocation(ssids, macs, rssis):
+    """
+    Get the computer's geolocation from wifi networks. Should be very accurate.
+    Returns:
+        Tuple: latitude and longitude coordinates
+    """
+    print "Get wifi-based geolocation"
+    
+    geourl = 'https://maps.googleapis.com/maps/api/browserlocation/json?browser=firefox&sensor=true'
+    for i,ssid in enumerate(ssids):
+        print macs[i], ssid, rssis[i]
+        geourl += '&wifi=mac:%s%%7Cssid:%s%%7Css:%s' % (macs[i], ssid.replace(" ", "%20"), rssis[i])
+    # Look up lat/lon from Google Maps API
+    try:
         html = urllib.urlopen(geourl).read()
         lat = re.compile('"lat" : (.+),').findall(html)[0]
         lon = re.compile('"lng" : (.+)').findall(html)[0]
         print "Latitude:", lat
         print "Longitude:", lon
-        return (lat, lon), True
+        return (lat, lon)
     except:
-        return None, False
+        return None
     
 def get_ip():
     """
     Get the computer's public-facing IP address.
+    Returns:
+        Boolean: if position has (probably) changed
+        String: IP address
     """
     print "Get public-facing IP address"
     ip = urllib.urlopen('http://automation.whatismyip.com/n09230945.asp').read()
     print "IP:", ip
-    return ip
 
-def get_geolocation(ip):
+    global last_pos_id
+    if last_pos_id == ip:
+        print "Same place, don't update"
+        return False, ip
+    else:
+        last_pos_id = ip
+        return True, ip
+
+def get_ip_geolocation(ip):
     """
     Get the computer's geolocation from its public-facing IP address. May not be very accurate, may even be in the wrong city or country.
     """
@@ -186,21 +254,19 @@ def do_work():
     """
     This gets the computer's location, fetches the correct-sized map and sets it as wallpaper.
     """
-    latlon, changed = get_wifi_geolocation()
+    changed, ssids, macs, rssis = get_wifi_list()
     if not changed:
         return
+    latlon = get_wifi_geolocation(ssids, macs, rssis)
     if latlon:
         if not args.zoom:
             args.zoom = 17 # http://wiki.openstreetmap.org/wiki/Zoom_levels
     else:
-        ip = get_ip()
-        if last_pos_id == ip:
-            print "Same place, don't update"
+        changed, ip = get_ip()
+        if not changed:
             return
-        else:
-            last_pos_id = ip
 
-        latlon = get_geolocation(ip)
+        latlon = get_ip_geolocation(ip)
 
         if not args.zoom:
             args.zoom = 10 # less zoom for less accurate IP-based geolocation
