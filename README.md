@@ -1,4 +1,4 @@
-satellite-pies
+Satellite Pies
 ==============
 
 A hacked up Python version of Satellite Eyes for Windows.
