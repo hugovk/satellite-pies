@@ -254,29 +254,32 @@ def do_work():
     """
     This gets the computer's location, fetches the correct-sized map and sets it as wallpaper.
     """
-    changed, ssids, macs, rssis = get_wifi_list()
-    if not changed:
-        return
-    latlon = get_wifi_geolocation(ssids, macs, rssis)
-    if latlon:
-        if not args.zoom:
-            args.zoom = 17 # http://wiki.openstreetmap.org/wiki/Zoom_levels
-    else:
-        changed, ip = get_ip()
+    if args.coords: # the user specified a location
+        latlon = args.coords
+    else: # get the user's location
+        changed, ssids, macs, rssis = get_wifi_list()
         if not changed:
             return
+        latlon = get_wifi_geolocation(ssids, macs, rssis)
+        if not latlon:
+            changed, ip = get_ip()
+            if not changed:
+                return
 
-        latlon = get_ip_geolocation(ip)
+            latlon = get_ip_geolocation(ip)
 
-        if not args.zoom:
-            args.zoom = 10 # less zoom for less accurate IP-based geolocation
+            if not args.zoom:
+                args.zoom = 10 # less zoom for less accurate IP-based geolocation
 
-    global last_coords
-    if last_coords == latlon:
-        print last_coords, "Same lat/lon coordinates as last time, don't update"
-        return
-    else:
-        last_coords = latlon
+        global last_coords
+        if last_coords == latlon:
+            print last_coords, "Same lat/lon coordinates as last time, don't update"
+            return
+        else:
+            last_coords = latlon
+
+    if not args.zoom:
+        args.zoom = 17 # http://wiki.openstreetmap.org/wiki/Zoom_levels
 
     if args.tile == "aerial" and args.zoom > 11:
         # args.zoom = 11 # Levels 12+ are provided only in the US
@@ -287,6 +290,13 @@ def do_work():
     set_wallpaper(filename)
     print_terms_of_use()
 
+def argparse_coords(s):
+    try:
+        lat, lon = map(float, s.split(','))
+        return lat, lon
+    except:
+        raise argparse.ArgumentTypeError("Coordinates must be lat,lon")
+        
 if __name__ == '__main__':
     if platform.system() != "Windows":
         sys.exit("Currently only implemented for Windows")
@@ -300,6 +310,9 @@ if __name__ == '__main__':
     parser.add_argument('-z', '--zoom', metavar='level', type=int,
         help='Map zoom level')
     
+    parser.add_argument('-x', '--coords', metavar='lat,lon', type=argparse_coords,
+        help='Instead of your current position, use these coordinates')
+
     parser.add_argument('-r', '--repeat', action='store_true',
         help='Repeat')
     parser.add_argument('-w', '--wait', metavar='minutes', type=int, 
