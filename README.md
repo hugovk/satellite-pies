@@ -44,7 +44,14 @@ Run once with an aerial map of a specific location (remembering west is negative
 
     satellite_pies.py -x 38.8977,-77.0366 --tile aerial
 
+Show an aerial photo of a named place:
 
+    satellite_pies.py -t aerial -n "golden gate bridge"
+    
+Show a map of a named place with a specified map tile server:
+
+    satellite_pies.py --name copenhagen --osm_base http://c.tiles.mapbox.com/v3/mapbox.mapbox-streets
+    
 Prerequisites
 -------------
 

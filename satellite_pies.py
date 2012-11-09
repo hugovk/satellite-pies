@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import argparse
 import ctypes
 import math
@@ -30,6 +31,21 @@ except ImportError, e:
 
 last_pos_id = [] # Can be a list of wifis or an IP address. Used to check if user is in the same place.
 last_coords = None,None
+
+def get_placename_geolocation(name):
+    name = name.replace(" ", "+")
+    url = "http://nominatim.openstreetmap.org/search?format=xml&q=" + name
+    
+    try:
+        html = urllib.urlopen(url).read()
+        lat = re.compile("lat='([-0-9\.]+)' ").findall(html)[0]
+        lon = re.compile("lon='([-0-9\.]+)' ").findall(html)[0]
+        print "Latitude:", lat
+        print "Longitude:", lon
+        return (lat, lon)
+    except:
+        sys.exit("Place not found")
+        return None
 
 def get_xp_wifi_list():
     """
@@ -219,11 +235,11 @@ def get_osm_image((lat, lon), screensize, zoom):
     metres_per_pixel = get_metres_per_pixel(lat, zoom)
     width_in_metres = screensize[0] * metres_per_pixel
     height_in_metres = screensize[1] * metres_per_pixel
-    print "bbox (metres):", width_in_metres, height_in_metres
+    # print "bbox (metres):", width_in_metres, height_in_metres
     bbox = get_bounding_box((lat, lon), (height_in_metres, width_in_metres))
     
     osm = OSMManager(image_manager=PILImageManager('RGB'),
-                     server=args.osm_base)
+                     server=args.url_base)
     img, bnds = osm.createOSMImage(bbox, zoom)
     print "Pre-crop size: ", img.size
     img = ImageOps.fit(img, screensize, Image.ANTIALIAS)
@@ -254,8 +270,10 @@ def do_work():
     """
     This gets the computer's location, fetches the correct-sized map and sets it as wallpaper.
     """
-    if args.coords: # the user specified a location
+    if args.coords: # the user specified coords
         latlon = args.coords
+    elif  args.name: # the user specified a place name
+        latlon = get_placename_geolocation(args.name)
     else: # get the user's location
         changed, ssids, macs, rssis = get_wifi_list()
         if not changed:
@@ -305,13 +323,15 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--tile', default='watercolor', 
         choices=('toner', 'watercolor', 'osm', 'aerial'), 
         help='Type of map tile to use')
-    parser.add_argument('-b', '--osm_base', metavar='URL', 
+    parser.add_argument('-u', '--url_base', metavar='URL', 
         help='Base URL for map tiles (use instead of --tile)')
     parser.add_argument('-z', '--zoom', metavar='level', type=int,
         help='Map zoom level')
     
     parser.add_argument('-x', '--coords', metavar='lat,lon', type=argparse_coords,
         help='Instead of your current position, use these coordinates')
+    parser.add_argument('-n', '--name', 
+        help='Instead of your current position, use this place name')
 
     parser.add_argument('-r', '--repeat', action='store_true',
         help='Repeat')
@@ -321,15 +341,15 @@ if __name__ == '__main__':
     args = parser.parse_args()
     print args
 
-    if not args.osm_base:
+    if not args.url_base:
         if args.tile == 'watercolor':
-            args.osm_base = "http://b.tile.stamen.com/watercolor"
+            args.url_base = "http://b.tile.stamen.com/watercolor"
         elif args.tile == 'toner':
-            args.osm_base = "http://b.tile.stamen.com/toner"
+            args.url_base = "http://b.tile.stamen.com/toner"
         elif args.tile == 'osm':
-            args.osm_base = "http://tile.openstreetmap.org"
+            args.url_base = "http://tile.openstreetmap.org"
         elif args.tile == 'aerial':
-            args.osm_base = "http://oatile1.mqcdn.com/tiles/1.0.0/sat"
+            args.url_base = "http://oatile1.mqcdn.com/tiles/1.0.0/sat"
 
     outfile = os.path.join(tempfile.gettempdir(), "satellite_pies.bmp") 
     set_wallpaper(outfile)
