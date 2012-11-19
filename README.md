@@ -1,14 +1,15 @@
 Satellite Pies
 ==============
 
-A hacked up Python version of Satellite Eyes for Windows.
+A hacked up Python version of [Satellite Eyes]( http://twitpic.com/beod64) for Windows to set your desktop wallpaper to a map of your current position. 
+You can use maps from [OpenStreetMap](www.openstreetmap.org), [Stamen's Watercolor and Toner](maps.stamen.com), [MapQuest Open Aerial](http://developer.mapquest.com/web/products/open/map), or another [slippy map tile server](http://wiki.openstreetmap.org/wiki/Slippy_map_tilenames).
 
 Usage
 -----
 
 ```
-usage: satellite_pies.py [-h] [-t {toner,watercolor,osm,aerial}] [-b URL]
-                         [-z level] [-x lat,lon] [-r] [-w minutes]
+usage: satellite_pies.py [-h] [-t {toner,watercolor,osm,aerial}] [-u URL]
+                         [-z level] [-x lat,lon] [-n NAME] [-r] [-w minutes]
 
 Satellite pies.
 
@@ -16,7 +17,7 @@ optional arguments:
   -h, --help            show this help message and exit
   -t {toner,watercolor,osm,aerial}, --tile {toner,watercolor,osm,aerial}
                         Type of map tile to use (default: watercolor)
-  -b URL, --osm_base URL
+  -u URL, --url_base URL
                         Base URL for map tiles (use instead of --tile)
                         (default: None)
   -z level, --zoom level
@@ -24,13 +25,20 @@ optional arguments:
   -x lat,lon, --coords lat,lon
                         Instead of your current position, use these
                         coordinates (default: None)
+  -n NAME, --name NAME  Instead of your current position, use this place name
+                        (default: None)
   -r, --repeat          Repeat (default: False)
   -w minutes, --wait minutes
                         Minutes to wait between repeat (default: 5)
+
 ```
 
 Examples
 --------
+
+Run once with Watercolor maps at zoom 17:
+
+    satellite_pies.py
 
 Run once with Toner maps at zoom 15:
 
