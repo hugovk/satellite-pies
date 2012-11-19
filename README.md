@@ -1,7 +1,7 @@
 Satellite Pies
 ==============
 
-A hacked up Python version of [Satellite Eyes]( http://twitpic.com/beod64) for Windows to set your desktop wallpaper to a map of your current position. 
+A hacked up Python version of [Satellite Eyes](http://satelliteeyes.tomtaylor.co.uk/) for Windows to set your desktop wallpaper to a map of your current position. 
 You can use maps from [OpenStreetMap](www.openstreetmap.org), [Stamen's Watercolor and Toner](maps.stamen.com), [MapQuest Open Aerial](http://developer.mapquest.com/web/products/open/map), or another [slippy map tile server](http://wiki.openstreetmap.org/wiki/Slippy_map_tilenames).
 
 Usage
