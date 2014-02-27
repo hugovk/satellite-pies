@@ -81,7 +81,7 @@ def get_nonxp_wifi_list():
     """
     print "Get non-WinXP wifi networks"
     cmd = 'netsh wlan show networks mode=bssid'
-    cmd = 'cat netsh_test_data.txt'
+    # cmd = 'cat netsh_test_data.txt' # For testing on XP/Mac
     try:
         p = Popen(cmd, stdout=PIPE, stderr=PIPE)
         stdout, stderr = p.communicate()
