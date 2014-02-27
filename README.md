@@ -82,7 +82,7 @@ Install with pip:
 Map terms of use
 ----------------
 
-The map images have the following terms of use. If you 
+The map images have the following terms of use.
 
  * OSM maps: (c) [OpenStreetMap](http://wiki.openstreetmap.org/wiki/Tile_usage_policy) and contributors, [CC-BY-SA](http://creativecommons.org/licenses/by-sa/3.0/).
 
