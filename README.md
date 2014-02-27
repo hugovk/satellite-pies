@@ -77,8 +77,8 @@ Install with pip:
 
  * Windows XP needs [WirelessNetConsole](http://www.nirsoft.net/utils/wireless_net_console.html) to get a list of nearby wifi networks, otherwise it will be based on your public-facing IP address which is less accurate.
 
- * For Windows Vista, Windows 7 and Windows Server 2008, nearby wifi networks can be found with `netsh wlan` (not available on XP). Only tested with fake test data on XP, so let me know if it works.
-  
+ * For Windows Vista, Windows 7 and Windows Server 2008, nearby wifi networks can be found with `netsh wlan` (not available on XP).
+
 Map terms of use
 ----------------
 
