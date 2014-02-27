@@ -65,9 +65,13 @@ Prerequisites
 
 *Python*
 
- * [PIL](http://www.pythonware.com/products/pil/)
+ * [Pillow](http://pillow.readthedocs.org/en/latest/) or [PIL](http://www.pythonware.com/products/pil/)
  * [OSM Viz](http://cbick.github.com/osmviz/html/index.html)
  * For --repeat, [Twisted](http://twistedmatrix.com/trac/)
+
+Install with pip:
+
+`pip install -r requirements.txt`
 
 *Optional prerequisite for Windows XP* 
 
