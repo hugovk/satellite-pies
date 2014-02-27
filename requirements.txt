@@ -1,0 +1,2 @@
+Pillow
+-e git://github.com/olibook/osmviz.git#egg=osmviz
