@@ -25,3 +25,11 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
+
+# Clone Digger
+output.html
+
+# pip stuff
+src/
+
+osmviz/
