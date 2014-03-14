@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import argparse
-import ctypes
 import math
 import os
 from PIL import Image, ImageOps
@@ -10,6 +9,19 @@ from subprocess import Popen, PIPE
 import sys
 import tempfile
 import urllib
+import win32api
+import win32con
+
+from ctypes import (
+    windll,
+    c_int,
+    c_long,
+    c_ulong,
+    c_double,
+    POINTER,
+    Structure,
+    WINFUNCTYPE,
+)
 
 # Prerequisites: PIL and OSM Viz
 # Prerequisites: For --repeat, twisted.internet
@@ -195,12 +207,56 @@ def get_ip_geolocation(ip):
     return (lat, lon)
 
 
+class RECT(Structure):
+    _fields_ = [
+        ('left', c_long),
+        ('top', c_long),
+        ('right', c_long),
+        ('bottom', c_long)
+    ]
+
+    def dump(self):
+        return map(int, (self.left, self.top, self.right, self.bottom))
+
+MonitorEnumProc = WINFUNCTYPE(c_int, c_ulong, c_ulong, POINTER(RECT), c_double)
+
+
+def get_all_monitor_extents():
+    results = []
+
+    def _callback(monitor, dc, rect, data):
+        results.append(rect.contents.dump())
+        return 1
+    callback = MonitorEnumProc(_callback)
+    windll.user32.EnumDisplayMonitors(0, 0, callback, 0)
+    return results
+
+
+def get_full_monitor_extent():
+    all_extents = get_all_monitor_extents()
+    first_monitor = all_extents[0]
+    last_monitor = all_extents[-1]
+    # Top-left from first, bottom-right from second
+    extent = [
+        first_monitor[0], first_monitor[1],
+        last_monitor[2], last_monitor[3]]
+    return extent
+
+
+def get_full_monitor_size():
+    extent = get_full_monitor_extent()
+    screensize = extent[2], extent[3]
+    return screensize
+
+
 def get_desktop_size():
     """
     Return computer's desktop screen size.
     """
-    user32 = ctypes.windll.user32
-    screensize = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
+    # TODO check if monitors == 1?
+    # user32 = windll.user32
+    # screensize = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
+    screensize = get_full_monitor_size()
     print "Desktop size:", screensize
     return (screensize)
 
@@ -270,11 +326,21 @@ def set_wallpaper(filename):
     """
     Set an image as wallpaper.
     """
+    # TODO only needed if monitors == 1
+
+    # Multiple monitors need tiling to span
+    k = win32api.RegOpenKeyEx(
+        win32con.HKEY_CURRENT_USER, "Control Panel\\Desktop", 0,
+        win32con.KEY_SET_VALUE)
+    win32api.RegSetValueEx(k, "WallpaperStyle", 0, win32con.REG_SZ, "0")
+    win32api.RegSetValueEx(k, "TileWallpaper", 0, win32con.REG_SZ, "1")
+
     if filename is not None:
         print filename
         SPI_SETDESKWALLPAPER = 20
-        ctypes.windll.user32.SystemParametersInfoA(
+        windll.user32.SystemParametersInfoA(
             SPI_SETDESKWALLPAPER, 0, filename, 0)
+            # SPIF_UPDATEINIFILE | SPIF_SENDWININICHANGE
 
 
 def print_terms_of_use():
