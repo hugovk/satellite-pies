@@ -11,6 +11,11 @@ import tempfile
 import urllib
 import win32api
 import win32con
+from win32con import (
+    SPI_SETDESKWALLPAPER,
+    SPIF_UPDATEINIFILE,
+    SPIF_SENDWININICHANGE
+)
 
 from ctypes import (
     windll,
@@ -336,11 +341,10 @@ def set_wallpaper(filename):
     win32api.RegSetValueEx(k, "TileWallpaper", 0, win32con.REG_SZ, "1")
 
     if filename is not None:
-        print filename
-        SPI_SETDESKWALLPAPER = 20
+        print(filename)
         windll.user32.SystemParametersInfoA(
-            SPI_SETDESKWALLPAPER, 0, filename, 0)
-            # SPIF_UPDATEINIFILE | SPIF_SENDWININICHANGE
+            SPI_SETDESKWALLPAPER, 0, filename,
+            SPIF_UPDATEINIFILE | SPIF_SENDWININICHANGE)
 
 
 def print_terms_of_use():
