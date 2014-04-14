@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import argparse
 import math
 import os
@@ -48,8 +49,8 @@ except ImportError, e:
         "OSM Viz module needed, available from\n"
         "http://cbick.github.com/osmviz/\n\n" % str(e))
 
- # Can be a list of wifis or an IP address.
- # Used to check if user is in the same place.
+# Can be a list of wifis or an IP address.
+# Used to check if user is in the same place.
 last_pos_id = []
 
 last_coords = None, None
@@ -63,8 +64,8 @@ def get_placename_geolocation(name):
         html = urllib.urlopen(url).read()
         lat = re.compile("lat='([-0-9\.]+)' ").findall(html)[0]
         lon = re.compile("lon='([-0-9\.]+)' ").findall(html)[0]
-        print "Latitude:", lat
-        print "Longitude:", lon
+        print("Latitude:", lat)
+        print("Longitude:", lon)
         return (lat, lon)
     except:
         sys.exit("Place not found")
@@ -80,16 +81,19 @@ def get_xp_wifi_list():
         List: of nearest networks' MAC addresses
         List: of nearest networks' RSSIs
     """
-    print "Get WinXP wifi networks"
+    print("Get WinXP wifi networks")
     cmd = 'WirelessNetConsole'
     try:
         p = Popen(cmd, stdout=PIPE, stderr=PIPE)
         stdout, stderr = p.communicate()
         # for line in stdout.split("\n"):
-            # print line
-        ssids = re.compile('SSID                          :  (.*)\r\r').findall(stdout)
-        macs = re.compile('MAC Address                   :  (.*)\r\r').findall(stdout)
-        rssis = re.compile('RSSI                          :  (.*)\r\r').findall(stdout)
+        #     print(line)
+        ssids = re.compile(
+            'SSID                          :  (.*)\r\r').findall(stdout)
+        macs = re.compile(
+            'MAC Address                   :  (.*)\r\r').findall(stdout)
+        rssis = re.compile(
+            'RSSI                          :  (.*)\r\r').findall(stdout)
 
         return ssids, macs, rssis
     except:
@@ -104,16 +108,17 @@ def get_nonxp_wifi_list():
         List: of nearest networks' MAC addressses
         List: of nearest networks' RSSIs
     """
-    print "Get non-WinXP wifi networks"
+    print("Get non-WinXP wifi networks")
     cmd = 'netsh wlan show networks mode=bssid'
     # cmd = 'cat netsh_test_data.txt' # For testing on XP/Mac
     try:
         p = Popen(cmd, stdout=PIPE, stderr=PIPE)
         stdout, stderr = p.communicate()
         # for line in stdout.split("\n"):
-            # print line
+        #    print(line)
         ssids = re.compile('SSID [0-9]* : (.*)\r').findall(stdout)
-        macs = re.compile('BSSID [0-9]*                 : (.*)\r').findall(stdout)
+        macs = re.compile(
+            'BSSID [0-9]*                 : (.*)\r').findall(stdout)
         rssis = re.compile(' Signal             : (.*)\r').findall(stdout)
 
         return ssids, macs, rssis
@@ -130,7 +135,7 @@ def get_wifi_list():
         List: of nearest networks' MAC addressses
         List: of nearest networks' RSSIs
     """
-    print "Get wifi networks"
+    print("Get wifi networks")
     if platform.release() == "XP":
         ssids, macs, rssis = get_xp_wifi_list()
     else:
@@ -139,7 +144,9 @@ def get_wifi_list():
     global last_pos_id
     number_same = len(set(last_pos_id) & set(macs))
     if number_same > 1:
-        print number_same, "same wifi networks found. Probably same place, don't update"
+        print(
+            number_same,
+            "same wifi networks found. Probably same place, don't update")
         return False, ssids, macs, rssis
     else:
         last_pos_id = macs
@@ -152,11 +159,11 @@ def get_wifi_geolocation(ssids, macs, rssis):
     Returns:
         Tuple: latitude and longitude coordinates
     """
-    print "Get wifi-based geolocation"
+    print("Get wifi-based geolocation")
 
     geourl = 'https://maps.googleapis.com/maps/api/browserlocation/json?browser=firefox&sensor=true'
     for i, ssid in enumerate(ssids):
-        print macs[i], ssid, rssis[i]
+        print(macs[i], ssid, rssis[i])
         geourl += '&wifi=mac:%s%%7Cssid:%s%%7Css:%s' % (
             macs[i], ssid.replace(" ", "%20"), rssis[i])
     # Look up lat/lon from Google Maps API
@@ -164,8 +171,8 @@ def get_wifi_geolocation(ssids, macs, rssis):
         html = urllib.urlopen(geourl).read()
         lat = re.compile('"lat" : (.+),').findall(html)[0]
         lon = re.compile('"lng" : (.+)').findall(html)[0]
-        print "Latitude:", lat
-        print "Longitude:", lon
+        print("Latitude:", lat)
+        print("Longitude:", lon)
         return (lat, lon)
     except:
         return None
@@ -178,13 +185,14 @@ def get_ip():
         Boolean: if position has (probably) changed
         String: IP address
     """
-    print "Get public-facing IP address"
-    ip = urllib.urlopen('http://automation.whatismyip.com/n09230945.asp').read()
-    print "IP:", ip
+    print("Get public-facing IP address")
+    ip = urllib.urlopen(
+        'http://automation.whatismyip.com/n09230945.asp').read()
+    print("IP:", ip)
 
     global last_pos_id
     if last_pos_id == ip:
-        print "Same place, don't update"
+        print("Same place, don't update")
         return False, ip
     else:
         last_pos_id = ip
@@ -196,19 +204,19 @@ def get_ip_geolocation(ip):
     Get the computer's geolocation from its public-facing IP address.
     May not be very accurate, may even be in the wrong city or country.
     """
-    print "Get IP geolocation"
+    print("Get IP geolocation")
     url = 'http://api.hostip.info/get_html.php?ip=%s&position=true' % ip
-    print url
+    print(url)
     response = urllib.urlopen(url).read()
     print(response)
     lat = re.compile('Latitude: ([0-9\.]*)').search(response).group(1)
     lon = re.compile('Longitude: ([0-9\.]*)').search(response).group(1)
     # city = re.compile('City: (.*)').search(response).group(1)
     # country = re.compile('Country: (.*)').search(response).group(1)
-    print "Latitude: ", lat
-    print "Longitude:", lon
-    # print "City:", city
-    # print "Country:", country
+    print("Latitude: ", lat)
+    print("Longitude:", lon)
+    # print("City:", city)
+    # print("Country:", country)
     return (lat, lon)
 
 
@@ -262,7 +270,7 @@ def get_desktop_size():
     # user32 = windll.user32
     # screensize = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
     screensize = get_full_monitor_size()
-    print "Desktop size:", screensize
+    print("Desktop size:", screensize)
     return (screensize)
 
 
@@ -271,7 +279,9 @@ def get_metres_per_pixel(lat, zoom):
     For a given latitude and OSM zoom level,
     return approximate number of metres each pixel represents.
     """
-    metres_per_pixel = 156543.04 * math.cos(lat*(math.pi/180)) / math.pow(2, zoom)
+    metres_per_pixel = (
+        156543.04 * math.cos(lat*(math.pi/180)) /
+        math.pow(2, zoom))
     return metres_per_pixel
 
 
@@ -301,7 +311,7 @@ def get_bounding_box((lat, lon), (height_in_metres, width_in_metres)):
     min_lon = lon - dLon
     max_lon = lon + dLon
 
-    # print min_lat, max_lat, min_lon, max_lon
+    # print(min_lat, max_lat, min_lon, max_lon)
     return (min_lat, max_lat, min_lon, max_lon)
 
 
@@ -313,15 +323,15 @@ def get_osm_image((lat, lon), screensize, zoom):
     metres_per_pixel = get_metres_per_pixel(lat, zoom)
     width_in_metres = screensize[0] * metres_per_pixel
     height_in_metres = screensize[1] * metres_per_pixel
-    # print "bbox (metres):", width_in_metres, height_in_metres
+    # print("bbox (metres):", width_in_metres, height_in_metres)
     bbox = get_bounding_box((lat, lon), (height_in_metres, width_in_metres))
 
     osm = OSMManager(image_manager=PILImageManager('RGB'),
                      server=args.url_base)
     img, bnds = osm.createOSMImage(bbox, zoom)
-    print "Pre-crop size: ", img.size
+    print("Pre-crop size: ", img.size)
     img = ImageOps.fit(img, screensize, Image.ANTIALIAS)
-    print "Post-crop size:", img.size
+    print("Post-crop size:", img.size)
     # outfile = os.path.join(tempfile.gettempdir(), "satellite_pies.bmp")
     img.save(outfile)
     return outfile
@@ -351,10 +361,10 @@ def print_terms_of_use():
     """
     Show terms of use for the map images.
     """
-    print "\nTerms of Use:"
-    print "\n * OSM maps: (c) OpenStreetMap and contributors, CC-BY-SA."
-    print "\n * Watercolor and Toner maps: Courtesy of Stamen Design, and use OpenStreetMap data, (c) OpenStreetMap and contributors CC-BY-SA."
-    print "\n * MapQuest Open Aerial Tiles: Portions Courtesy NASA/JPL-Caltech and U.S. Depart. of Agriculture, Farm Service Agency. Tiles Courtesy of MapQuest."
+    print("\nTerms of Use:")
+    print("\n * OSM maps: (c) OpenStreetMap and contributors, CC-BY-SA.")
+    print("\n * Watercolor and Toner maps: Courtesy of Stamen Design, and use OpenStreetMap data, (c) OpenStreetMap and contributors CC-BY-SA.")
+    print("\n * MapQuest Open Aerial Tiles: Portions Courtesy NASA/JPL-Caltech and U.S. Depart. of Agriculture, Farm Service Agency. Tiles Courtesy of MapQuest.")
 
 
 def do_work():
@@ -384,7 +394,9 @@ def do_work():
 
         global last_coords
         if last_coords == latlon:
-            print last_coords, "Same lat/lon coordinates as last time, don't update"
+            print(
+                last_coords,
+                "Same lat/lon coordinates as last time, don't update")
             return
         else:
             last_coords = latlon
@@ -394,9 +406,11 @@ def do_work():
 
     if args.tile == "aerial" and args.zoom > 11:
         # args.zoom = 11 # Levels 12+ are provided only in the US
-        print "Warning: MapQuest Open Aerial zoom levels 12+ are provided only in the US"
+        print(
+            "Warning: MapQuest Open Aerial zoom levels "
+            "12+ are provided only in the US")
 
-    print "Zoom level:", args.zoom
+    print("Zoom level:", args.zoom)
     filename = get_osm_image(latlon, get_desktop_size(), args.zoom)
     set_wallpaper(filename)
     print_terms_of_use()
@@ -441,8 +455,15 @@ if __name__ == '__main__':
         '-w', '--wait', metavar='minutes', type=int,
         help='Minutes to wait between repeat', default=5)
 
+    parser.add_argument(
+        '--terms',  action='store_true',
+        help='Show terms of use for the map images and exit')
     args = parser.parse_args()
-    print args
+    print(args)
+
+    if args.terms:
+        print_terms_of_use()
+        sys.exit()
 
     if not args.url_base:
         if args.tile == 'watercolor':
