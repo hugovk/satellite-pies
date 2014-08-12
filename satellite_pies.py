@@ -475,6 +475,8 @@ if __name__ == '__main__':
         elif args.tile == 'aerial':
             args.url_base = "http://oatile1.mqcdn.com/tiles/1.0.0/sat"
 
+    args.url_base = args.url_base.rstrip("/")
+
     outfile = os.path.join(tempfile.gettempdir(), "satellite_pies.bmp")
     set_wallpaper(outfile)
 
