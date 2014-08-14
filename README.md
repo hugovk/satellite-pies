@@ -3,7 +3,7 @@ Satellite Pies
 
 <a href="https://www.flickr.com/photos/hugovk/13686739945" title="Satellite Pies by hugovk, on Flickr"><img src="https://farm3.staticflickr.com/2904/13686739945_09d28d390b_c.jpg" width="800" height="500" alt="Satellite Pies"></a>
 
-A hacked up Python version of [Satellite Eyes](http://satelliteeyes.tomtaylor.co.uk/) for Windows to set your desktop wallpaper to a map of your current position. 
+A hacked up Python version of [Satellite Eyes](http://satelliteeyes.tomtaylor.co.uk/) for Windows to set your desktop wallpaper to a map of your current position.
 You can use maps from [OpenStreetMap](www.openstreetmap.org), [Stamen's Watercolor and Toner](maps.stamen.com), [MapQuest Open Aerial](http://developer.mapquest.com/web/products/open/map), or another [slippy map tile server](http://wiki.openstreetmap.org/wiki/Slippy_map_tilenames).
 
 Usage
@@ -57,11 +57,11 @@ Run once with an aerial map of a specific location (remembering west is negative
 Show an aerial photo of a named place:
 
     satellite_pies.py -t aerial -n "golden gate bridge"
-    
+
 Show a map of a named place with a specified map tile server:
 
-    satellite_pies.py --name copenhagen --osm_base http://c.tiles.mapbox.com/v3/mapbox.mapbox-streets
-    
+    satellite_pies.py --name copenhagen --url_base http://c.tiles.mapbox.com/v3/mapbox.mapbox-streets
+
 Prerequisites
 -------------
 
@@ -75,7 +75,7 @@ Install with pip:
 
 `pip install -r requirements.txt`
 
-*Optional prerequisite for Windows XP* 
+*Optional prerequisite for Windows XP*
 
  * Windows XP needs [WirelessNetConsole](http://www.nirsoft.net/utils/wireless_net_console.html) to get a list of nearby wifi networks, otherwise it will be based on your public-facing IP address which is less accurate.
 
