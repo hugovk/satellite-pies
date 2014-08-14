@@ -60,7 +60,7 @@ Show an aerial photo of a named place:
 
 Show a map of a named place with a specified map tile server:
 
-    satellite_pies.py --name copenhagen --url_base http://c.tiles.mapbox.com/v3/mapbox.mapbox-streets
+    satellite_pies.py --name copenhagen --url_base http://tile.stamen.com/toner-lite
 
 Prerequisites
 -------------
