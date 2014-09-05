@@ -10,7 +10,7 @@ from subprocess import Popen, PIPE
 import sys
 import tempfile
 import urllib
-import win32api
+import win32api  # http://sourceforge.net/projects/pywin32/files/pywin32/
 import win32con
 from win32con import (
     SPI_SETDESKWALLPAPER,
