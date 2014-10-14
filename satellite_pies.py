@@ -68,7 +68,6 @@ def get_placename_geolocation(name):
         print("Longitude:", lon)
         return (lat, lon)
     except:
-        sys.exit("Place not found")
         return None
 
 
@@ -376,6 +375,8 @@ def do_work():
         latlon = args.coords
     elif args.name:  # the user specified a place name
         latlon = get_placename_geolocation(args.name)
+        if latlon is None:
+            sys.exit("Place not found")
     else:  # get the user's location
         changed, ssids, macs, rssis = get_wifi_list()
         if not changed:
@@ -418,6 +419,7 @@ def do_work():
 
 def argparse_coords(s):
     try:
+        s = s.strip("'")
         lat, lon = map(float, s.split(','))
         return lat, lon
     except:
